@@ -1,0 +1,17 @@
+name: Supabase Keep Alive
+
+on:
+  schedule:
+    # Se ejecuta a las 12:00 (UTC) cada 3 días
+    - cron: '0 12 */3 * *'
+  workflow_dispatch: # Permite lanzarlo también a mano desde GitHub si quieres probarlo
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Netlify API to keep Supabase awake
+        run: |
+          echo "Enviando peticion a la API..."
+          curl -s "https://reservas-material.netlify.app/api/reservations?weekStart=2026-09-07" > /dev/null
+          echo "Ping completado con éxito. Supabase sigue despierto."
