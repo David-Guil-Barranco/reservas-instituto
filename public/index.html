@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reservas – Recursos del centro</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="topbar-left">
+      <svg class="topbar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+      </svg>
+      <span class="topbar-title">Reservas del centro</span>
+    </div>
+    <!-- El JS inyecta aquí el indicador de admin si hay sesión activa -->
+    <div id="topbar-right"></div>
+  </header>
+
+  <main>
+    <!-- Tabs de recursos -->
+    <nav class="tab-bar" id="tab-bar" role="tablist" aria-label="Recursos">
+      <!-- Generado por JS una vez cargados los recursos -->
+    </nav>
+
+    <div class="week-nav">
+      <button class="icon-btn" id="btn-prev" title="Semana anterior">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <h2 class="week-label" id="week-label">Cargando…</h2>
+      <button class="icon-btn" id="btn-next" title="Semana siguiente">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+
+    <div class="cal-wrap">
+      <table class="cal-table">
+        <thead>
+          <tr>
+            <th class="col-time"></th>
+            <th id="th-day-0">Lun</th>
+            <th id="th-day-1">Mar</th>
+            <th id="th-day-2">Mié</th>
+            <th id="th-day-3">Jue</th>
+            <th id="th-day-4">Vie</th>
+          </tr>
+        </thead>
+        <tbody id="cal-body"></tbody>
+      </table>
+    </div>
+
+    <div class="legend">
+      <span class="leg-item"><span class="leg-dot free"></span>Libre</span>
+      <span class="leg-item"><span class="leg-dot taken"></span>Reservado</span>
+      <span class="leg-item"><span class="leg-dot locked"></span>No disponible</span>
+    </div>
+  </main>
+
+  <div class="modal-overlay hidden" id="modal" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <button class="modal-close" id="modal-x" aria-label="Cerrar">&times;</button>
+      <div id="modal-content"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

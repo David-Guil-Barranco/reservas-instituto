@@ -1,0 +1,5 @@
+node_modules
+.env
+carritos.db
+*.zip
+test_zip_extract
