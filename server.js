@@ -156,6 +156,6 @@ module.exports.handler = serverless(app);
 if (!process.env.NETLIFY) {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
-    console.log(\`Servidor en http://localhost:\${PORT} (Conectado a Supabase)\`);
+    console.log(`Servidor en http://localhost:${PORT} (Conectado a Supabase)`);
   });
 }
