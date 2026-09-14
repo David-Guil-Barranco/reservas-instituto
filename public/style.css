@@ -186,35 +186,84 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 16px 40px; }
 }
 .break-row .time-cell { text-align: right; padding-right: 10px; padding-top: 4px; }
 
-/* ── Day cell ────────────────────────────────────────────────────────────── */
-.day-cell { display: flex; flex-direction: column; gap: 3px; }
-
-/* ── Pills ───────────────────────────────────────────────────────────────── */
-.pill {
-  display: flex; align-items: center; gap: 5px;
-  border-radius: var(--radius); border: 1px solid transparent;
-  padding: 3px 7px; font-size: 0.75rem; line-height: 1.35;
-  min-height: 28px; cursor: pointer; transition: filter 0.12s;
+/* ── Slot buttons ────────────────────────────────────────────────────────────── */
+.cell-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 3px;
 }
-.pill b {
-  flex-shrink: 0; font-size: 0.68rem; font-weight: 700;
-  font-family: "SF Mono","Fira Mono","Consolas",monospace;
-  background: rgba(0,0,0,0.07); border-radius: 2px; padding: 1px 4px;
+
+.slot-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  min-height: 52px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  border: 1.5px solid transparent;
+  font-family: var(--font);
+  font-size: 0.78rem;
+  text-align: left;
+  cursor: pointer;
+  transition: filter 0.12s, transform 0.08s;
+  line-height: 1.3;
 }
-.pill span { flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.slot-btn:hover { filter: brightness(0.95); transform: translateY(-1px); }
+.slot-btn:active { transform: translateY(0); }
 
-/* Single-resource pill (Biblioteca, Aula Info, SUM): sin etiqueta lateral */
-.pill.single { padding: 6px 10px; min-height: 36px; font-size: 0.8rem; }
-.pill.single b { display: none; }
+.slot-free {
+  background: var(--green-bg);
+  border-color: var(--green-border);
+  color: var(--green);
+}
+.slot-taken {
+  background: var(--blue-bg);
+  border-color: var(--blue-border);
+  color: #1e3a8a;
+}
+.slot-block {
+  background: #fef2f2;
+  border-color: #fca5a5;
+  color: #991b1b;
+}
 
-/* States */
-.pill.free   { background: var(--green-bg);  border-color: var(--green-border); color: var(--green);  }
-.pill.taken  { background: var(--blue-bg);   border-color: var(--blue-border);  color: #1e40af;       }
-.pill.locked { background: var(--gray-100);  border-color: var(--gray-200);     color: var(--gray-400); cursor: default; pointer-events: none; }
-.pill.free:hover  { filter: brightness(0.95); }
-.pill.taken:hover { filter: brightness(0.96); }
+.slot-resource {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.65;
+  margin-bottom: 2px;
+}
+.slot-teacher {
+  font-weight: 600;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.slot-group {
+  font-size: 0.73rem;
+  opacity: 0.75;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.slot-free-text {
+  font-weight: 600;
+  font-size: 0.82rem;
+  margin: auto;
+  align-self: center;
+}
+.time-range {
+  font-size: 0.68rem;
+}
 
-/* ── Legend ──────────────────────────────────────────────────────────────── */
+/* ── Legend ──────────────────────────────────────────────────────────────────── */
 .legend { display: flex; gap: 18px; margin-top: 11px; padding-left: 2px; }
 .leg-item { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--gray-500); }
 .leg-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
