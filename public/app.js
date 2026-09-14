@@ -186,14 +186,14 @@ function renderBody() {
           } else {
              pill.innerHTML = `<strong>${escHtml(resv.teacher_name)}</strong><br>${escHtml(resv.group_name)}`;
           }
-          if (isMulti) pill.title = resourceLabels[resId] || resId;
+          if (isMulti) pill.title = resourceLabels[resId]?.label || resId;
           
           pill.addEventListener('click', () => {
             if (IS_ADMIN) openAdminCancelModal(resv);
             else openCancelModal(resv);
           });
         } else {
-          pill.innerHTML = isMulti ? `<em>${escHtml(resourceLabels[resId] || resId)}</em>` : `<em>Libre</em>`;
+          pill.innerHTML = isMulti ? `<em>${escHtml(resourceLabels[resId]?.label || resId)}</em>` : `<em>Libre</em>`;
           pill.addEventListener('click', () => openReserveModal(dStr, slot, resId));
         }
 
@@ -244,7 +244,7 @@ function showErr(id, msg) {
 function openReserveModal(date, slot, resourceId) {
   pending = { action: 'reserve', date, slotId: slot.id, resourceId };
   const d     = new Date(date + 'T00:00:00');
-  const label = resourceLabels[resourceId] || resourceId;
+  const label = resourceLabels[resourceId]?.label || resourceId;
   showModal(`
     <h3>Reservar – ${escHtml(label)}</h3>
     <p class="modal-sub">${DAY_LONG[d.getDay()]} ${d.getDate()} | ${slot.start}-${slot.end}</p>
