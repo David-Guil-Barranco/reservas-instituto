@@ -112,6 +112,7 @@ async function loadReservations() {
 }
 
 // ── Render ────────────────────────────────────────────────────────────────────
+function render() { renderHeader(); renderBody(); renderNavButtons(); }
 function renderHeader() {
   const dEnd = new Date(currentWeekStart);
   dEnd.setDate(dEnd.getDate() + 4);
