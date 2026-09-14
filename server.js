@@ -17,14 +17,14 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ── Configuración de Recursos ─────────────────────────────────────────────────
-const VALID_RESOURCE_IDS = new Set(['carrito-1', 'carrito-2', 'carrito-3', 'biblioteca', 'aula-info', 'sum']);
+const VALID_RESOURCE_IDS = new Set(['chromebooks', 'carro-grande', 'carro-pequeno', 'biblioteca', 'aula-info', 'sum']);
 const RESOURCES = {
-  'carrito-1':  { label: 'Carrito 1 (Portátiles)' },
-  'carrito-2':  { label: 'Carrito 2 (Portátiles)' },
-  'carrito-3':  { label: 'Carrito 3 (Portátiles)' },
-  'biblioteca': { label: 'Biblioteca' },
-  'aula-info':  { label: 'Aula de Informática' },
-  'sum':        { label: 'Salón de Usos Múltiples (SUM)' }
+  'chromebooks':   { label: 'Chromebooks' },
+  'carro-grande':  { label: 'Carro Grande' },
+  'carro-pequeno': { label: 'Carro Pequeño' },
+  'biblioteca':    { label: 'Biblioteca' },
+  'aula-info':     { label: 'Aula de Informática' },
+  'sum':           { label: 'Salón de Usos Múltiples (SUM)' }
 };
 
 // ── Utilidades ────────────────────────────────────────────────────────────────
@@ -54,41 +54,89 @@ router.get('/reservations', async (req, res) => {
   const { data, error } = await supabase
     .from('reservas_instituto')
     .select('*')
-    .gte('date', weekStart)
-    .lte('date', endStr)
-    .order('date')
+    .or(`and(date.gte.${weekStart},date.lte.${endStr}),date.like.WEEKLY-%`)
     .order('slot')
     .order('resource_id');
 
   if (error) return res.status(500).json({ error: error.message });
-  res.json(data || []);
+  
+  const rawData = data || [];
+  const regular = [];
+  const blocks = [];
+  rawData.forEach(r => r.date.startsWith('WEEKLY-') ? blocks.push(r) : regular.push(r));
+
+  // Expandimos los bloqueos fijos a las fechas reales de la semana solicitada
+  const merged = [...regular];
+  blocks.forEach(b => {
+    const dayIndex = parseInt(b.date.split('-')[1], 10); // 1 = Lunes, 5 = Viernes
+    const actualDate = new Date(weekStart + 'T00:00:00');
+    actualDate.setDate(actualDate.getDate() + (dayIndex - 1));
+    const actualDateStr = actualDate.toISOString().split('T')[0];
+    
+    // Si ya había una reserva normal en ese hueco, se omite porque manda el bloqueo fijo
+    const conflictIdx = merged.findIndex(r => r.date === actualDateStr && r.slot === b.slot && r.resource_id === b.resource_id);
+    if (conflictIdx !== -1) merged.splice(conflictIdx, 1);
+
+    merged.push({ ...b, date: actualDateStr, is_block: true });
+  });
+
+  res.json(merged);
 });
 
 // POST /api/reservations
 router.post('/reservations', async (req, res) => {
-  const { date, slot, resource_id, teacher_name, group_name, pin } = req.body ?? {};
+  const { date, slot, resource_id, teacher_name, group_name, pin, is_block, admin_password } = req.body ?? {};
   const name   = (teacher_name ?? '').toString().trim();
   const group  = (group_name   ?? '').toString().trim();
   const pinStr = (pin ?? '').toString().trim();
 
-  if (!date || slot == null || !resource_id || !name || !group || !pinStr) {
+  if (is_block && admin_password !== ADMIN_PASSWORD) {
+    return res.status(403).json({ error: 'Solo el administrador puede bloquear franjas fijas.' });
+  }
+
+  if (!date || slot == null || !resource_id || !name || !group || (!pinStr && !is_block)) {
     return res.status(400).json({ error: 'Faltan campos obligatorios.' });
   }
-  if (!/^\d{4}$/.test(pinStr)) {
+  if (!is_block && !/^\d{4}$/.test(pinStr)) {
     return res.status(400).json({ error: 'El PIN debe tener exactamente 4 dígitos.' });
   }
   if (!VALID_RESOURCE_IDS.has(resource_id)) return res.status(400).json({ error: 'Recurso no válido.' });
-  if (!dateIsBookable(date)) return res.status(400).json({ error: 'Solo puedes reservar dentro de los próximos 7 días lectivos.' });
+  
+  if (!is_block && !dateIsBookable(date)) {
+    return res.status(400).json({ error: 'Solo puedes reservar dentro de los próximos 7 días lectivos.' });
+  }
   if (slot < 1 || slot > 6) return res.status(400).json({ error: 'Tramo no válido.' });
+
+  let saveDate = date;
+  let savePin = pinStr;
+  
+  if (is_block) {
+    const dayOfWeek = new Date(date + 'T00:00:00').getDay();
+    if (dayOfWeek === 0 || dayOfWeek === 6) return res.status(400).json({ error: 'No se puede bloquear fines de semana.' });
+    saveDate = 'WEEKLY-' + dayOfWeek;
+    savePin = 'ADMIN';
+  } else {
+    // Comprobar si hay un bloqueo fijo que impida la reserva normal
+    const dayOfWeek = new Date(date + 'T00:00:00').getDay();
+    const blockDate = 'WEEKLY-' + dayOfWeek;
+    const { data: bData } = await supabase
+      .from('reservas_instituto')
+      .select('id')
+      .eq('date', blockDate)
+      .eq('slot', slot)
+      .eq('resource_id', resource_id)
+      .single();
+    if (bData) return res.status(409).json({ error: 'Esta franja está bloqueada para todo el curso.' });
+  }
 
   const { data, error } = await supabase
     .from('reservas_instituto')
-    .insert([{ date, slot, resource_id, teacher_name, group_name, pin: pinStr }])
+    .insert([{ date: saveDate, slot, resource_id, teacher_name: name, group_name: group, pin: savePin }])
     .select('id')
     .single();
 
   if (error) {
-    if (error.code === '23505') { // Postgres unique violation
+    if (error.code === '23505') { 
       return res.status(409).json({ error: 'Ese recurso ya está reservado en ese tramo.' });
     }
     console.error(error);
@@ -111,6 +159,8 @@ router.delete('/reservations/:id', async (req, res) => {
     .single();
 
   if (fetchErr || !row) return res.status(404).json({ error: 'Reserva no encontrada.' });
+  
+  if (row.pin === 'ADMIN') return res.status(403).json({ error: 'Esto es un bloqueo fijo. Solo el administrador puede borrarlo desde el modo Admin.' });
   if (row.pin !== pin) return res.status(403).json({ error: 'PIN incorrecto. No puedes cancelar esta reserva.' });
 
   const { error: delErr } = await supabase.from('reservas_instituto').delete().eq('id', id);
@@ -143,16 +193,10 @@ router.delete('/admin/reservations/:id', async (req, res) => {
   res.json({ ok: true });
 });
 
-// Conectar router a express. Se usa /api para coincidir con el frontend.
 app.use('/api', router);
-
-// Servir la carpeta public en desarrollo local
 app.use(express.static('public'));
-
-// ── Exportar para Netlify Functions ──────────────────────────────────────────
 module.exports.handler = serverless(app);
 
-// ── Arranque para entorno de desarrollo local ─────────────────────────────────
 if (!process.env.NETLIFY) {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {

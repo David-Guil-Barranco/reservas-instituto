@@ -273,3 +273,6 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 16px 40px; }
 .btn-danger:hover:not(:disabled)   { background: var(--red-hover);  }
 .btn-ghost    { background: none; color: var(--gray-500); border: 1px solid var(--gray-200); }
 .btn-ghost:hover:not(:disabled)    { background: var(--gray-100); }
+
+.is-block { background: #fee2e2; border-color: #ef4444; color: #991b1b; }
+.is-block strong { color: #7f1d1d; }
