@@ -261,7 +261,7 @@ function openReserveModal(date, slot, resourceId) {
       </label>
     ` : `
       <label>PIN de seguridad (4 dígitos)
-        <input type="password" id="m-pin" placeholder="••••" maxlength="4" pattern="\\d{4}">
+        <input type="password" id="m-pin" placeholder="••••" maxlength="4" pattern="d{4}">
       </label>
     `}
     
@@ -353,7 +353,7 @@ async function submitCancel() {
   const btn = document.getElementById('c-ok');
   btn.disabled = true; btn.textContent = 'Borrando...';
   
-  const res = await apiFetch('DELETE', \`/api/reservations/\${pending.id}\`, { pin });
+  const res = await apiFetch('DELETE', `/api/reservations/${pending.id}`, { pin });
   btn.disabled = false; btn.textContent = 'Cancelar reserva';
   
   if (res.error) showErr('c-err', res.error);
@@ -368,24 +368,24 @@ async function submitCancel() {
 function setupAdminIndicator() {
   const container = document.getElementById('topbar-right');
   if (IS_ADMIN) {
-    container.innerHTML = \`
+    container.innerHTML = `
       <div class="admin-indicator">
         <span class="admin-badge">Modo Admin</span>
         <button class="btn btn-ghost" id="btn-logout" style="padding:4px 8px; font-size:0.8rem">Salir</button>
       </div>
-    \`;
+    `;
     document.getElementById('btn-logout').onclick = () => {
       sessionStorage.removeItem('adminPw');
       window.location.reload();
     };
   } else {
-    container.innerHTML = \`<button class="btn btn-ghost" id="btn-admin-login">Admin</button>\`;
+    container.innerHTML = `<button class="btn btn-ghost" id="btn-admin-login">Admin</button>`;
     document.getElementById('btn-admin-login').onclick = openAdminLogin;
   }
 }
 
 function openAdminLogin() {
-  showModal(\`
+  showModal(`
     <h3>Modo Administrador</h3>
     <p class="modal-sub">Acceso exclusivo para coordinación</p>
     <label>Contraseña
@@ -396,11 +396,11 @@ function openAdminLogin() {
       <button class="btn btn-ghost" id="a-back">Volver</button>
       <button class="btn btn-primary" id="a-ok">Entrar</button>
     </div>
-  \`);
+  `);
   document.getElementById('a-back').onclick = hideModal;
   document.getElementById('a-ok').onclick = async () => {
     const pw = document.getElementById('a-pw').value;
-    const res = await apiFetch('GET', \`/api/admin/reservations?password=\${encodeURIComponent(pw)}\`);
+    const res = await apiFetch('GET', `/api/admin/reservations?password=${encodeURIComponent(pw)}`);
     if (res.error) {
       showErr('a-err', res.error);
     } else {
@@ -414,7 +414,7 @@ function openAdminCancelModal(resv) {
   pending = { action: 'admin_cancel', id: resv.id };
   const d = new Date(resv.date + 'T00:00:00');
   const typeText = resv.is_block ? '<strong style="color:red">BLOQUEO FIJO DEL CURSO</strong>' : 'reserva';
-  showModal(\`
+  showModal(`
     <h3>Admin - Borrar ${resv.is_block ? 'Bloqueo' : 'Reserva'}</h3>
     <p class="modal-sub">${DAY_LONG[d.getDay()]} ${d.getDate()} | Tramo ${resv.slot}</p>
     <p>Estás a punto de borrar la ${typeText} de <strong>${escHtml(resv.teacher_name)}</strong>.</p>
@@ -423,13 +423,13 @@ function openAdminCancelModal(resv) {
       <button class="btn btn-ghost" id="ac-back">Volver</button>
       <button class="btn btn-danger" id="ac-ok">Borrar definitivamente</button>
     </div>
-  \`);
+  `);
   document.getElementById('ac-back').onclick = hideModal;
   document.getElementById('ac-ok').onclick = async () => {
     const btn = document.getElementById('ac-ok');
     btn.disabled = true; btn.textContent = 'Borrando...';
     
-    const res = await apiFetch('DELETE', \`/api/admin/reservations/\${pending.id}\`, { 
+    const res = await apiFetch('DELETE', `/api/admin/reservations/${pending.id}`, { 
       password: sessionStorage.getItem('adminPw') 
     });
     
