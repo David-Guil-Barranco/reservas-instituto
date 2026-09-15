@@ -7,11 +7,11 @@ app.use(express.json());
 
 // ── Variables de Entorno y Supabase ───────────────────────────────────────────
 const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY;
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'instituto';
 
 if (!SUPABASE_URL || !SUPABASE_KEY) {
-  console.error("FALTAN VARIABLES DE ENTORNO: SUPABASE_URL y SUPABASE_ANON_KEY son obligatorias.");
+  console.error("FALTAN VARIABLES DE ENTORNO: SUPABASE_URL y SUPABASE_SERVICE_KEY/SUPABASE_ANON_KEY son obligatorias.");
 }
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
